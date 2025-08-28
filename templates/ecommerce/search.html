@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Search</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .search-form { margin-bottom: 20px; }
+        .search-box { padding: 10px; width: 400px; }
+        .results { margin-top: 20px; }
+        .result-item { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; }
+        .highlight { background-color: yellow; }
+        .pagination { margin-top: 20px; }
+        .meta { color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>Product Search</h1>
+
+    <form method="GET" class="search-form">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search Products..." class="search-box">
+        <input type="text" name="category" value="{{ category_filter }}" placeholder="Category filter...">
+        <button type="submit">Search</button>
+    </form>
+
+    <p><a href="{% url 'advanced_search' %}">Advanced Search</a></p>
+
+    {% if query %}
+        <p>Found {{ total_hits }} result{{ total_hits|pluralize }} for "{{ query }}"</p>
+
+        <div class="results">
+            {% for result in results %}
+                <div class="result-item">
+                    <h3>
+                        {% if result.highlighted_name %}
+                            {{ result.highlighted_name|safe }}
+                        {% else %}
+                            {{ result.name }}
+                        {% endif %}
+                    </h3>
+
+                    <p>
+                        {% if result.highlighted_description %}
+                            {{ result.highlighted_description|safe }}
+                        {% else %}
+                            {{ result.description }}
+                        {% endif %}
+                    </p>
+
+                    <div class="meta">
+                        By {{ result.price }} |
+                        {{ result.created_at|date:"M d, Y" }} |
+                        Score: {{ result.score|floatformat:2 }}
+                    </div>
+                </div>
+            {% empty %}
+                <p>No results found.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if results.has_other_pages %}
+            <div class="pagination">
+                {% if results.has_previous %}
+                    <a href="?q={{ query }}&category={{ category_filter }}&page={{ results.previous_page_number }}">&laquo; Previous</a>
+                {% endif %}
+
+                Page {{ results.number }} of {{ results.paginator.num_pages }}
+
+                {% if results.has_next %}
+                    <a href="?q={{ query }}&category={{ category_filter }}&page={{ results.next_page_number }}">Next &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+</body>
+</html>
