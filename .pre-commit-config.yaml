@@ -1,0 +1,12 @@
+repos:
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.12.2
+  hooks:
+    - id: ruff-check # lint
+    - id: ruff-format # fmt
+
+- repo: https://github.com/Riverside-Healthcare/djLint
+  rev: v1.32.0
+  hooks:
+    - id: djlint-reformat-django
+    - id: djlint-django

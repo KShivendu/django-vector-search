@@ -16,5 +16,4 @@ uv run manage.py search_index --rebuild
 
 # Run server:
 uv run manage.py runserver
-
 ```

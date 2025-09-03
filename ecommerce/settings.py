@@ -38,14 +38,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "ecommerce",
-    "django_elasticsearch_dsl"
+    "django_elasticsearch_dsl",
 ]
 
-ELASTICSEARCH_DSL = {
-    'default': {
-        'hosts': 'http://localhost:9200'
-    }
-}
+ELASTICSEARCH_DSL = {"default": {"hosts": "http://localhost:9200"}}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -62,9 +58,7 @@ ROOT_URLCONF = "ecommerce.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            BASE_DIR / "templates"
-        ],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

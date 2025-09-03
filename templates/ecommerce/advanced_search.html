@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Advanced Search</title>
-    <style>
+<html lang="en">
+    <head>
+        <title>Advanced Search</title>
+        <meta name="keywords"
+              content="advanced search, articles, ecommerce, django">
+        <meta name="description"
+              content="Advanced search page for articles with multiple filters and facets.">
+        <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .search-form { background: #f5f5f5; padding: 20px; margin-bottom: 20px; }
         .form-row { margin-bottom: 10px; }
@@ -15,80 +19,71 @@
         .facet li { margin-bottom: 5px; }
         .results { margin-left: 220px; }
         .result-item { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; }
-    </style>
-</head>
-<body>
-    <h1>Advanced Article Search</h1>
-
-    <form method="GET" class="search-form">
-        <div class="form-row">
-            <label>Search:</label>
-            <input type="text" name="q" value="{{ request.GET.q }}">
+        </style>
+    </head>
+    <body>
+        <h1>Advanced Article Search</h1>
+        <form method="get" class="search-form">
+            <div class="form-row">
+                <label>Search:</label>
+                <input type="text" name="q" value="{{ request.GET.q }}">
+            </div>
+            <!-- <div class="form-row">
+                <label>Min Price From:</label>
+                <input type="date" name="date_from" value="{{ request.GET.date_from }}">
+            </div>
+            <div class="form-row">
+                <label>Date To:</label>
+                <input type="date" name="date_to" value="{{ request.GET.date_to }}">
+</div> -->
+            <!-- Let's add a slider for min and max range: -->
+            <input id="min_price"
+                   name="min_price"
+                   value="{{ request.GET.min_price|default:0 }}"
+                   placeholder="Min Price">
+            <input id="max_price"
+                   name="max_price"
+                   value="{{ request.GET.max_price|default:1000 }}"
+                   placeholder="Max Price">
+            <button type="submit">Search</button>
+        </form>
+        <div class="facets">
+            <!-- <div class="facet">
+                <h4>Categories</h4>
+                <ul>
+                    {% for category in facets.categories %}
+                        <li>
+                            <a href="?{{ request.GET.urlencode }}&category={{ category.key }}">{{ category.key }} ({{ category.count }})</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+             -->
+            <!-- Price histogram buckets: -->
+            <div class="facet">
+                <h4>Price Ranges</h4>
+                <ul>
+                    {% for bucket in facets.price_histogram %}
+                        <li>
+                            <a href="?{{ request.GET.urlencode }}&price_range={{ bucket.key }}">{{ bucket.key }} ({{ bucket.count }})</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
-        <div class="form-row">
-            <label>Author:</label>
-            <input type="text" name="author" value="{{ request.GET.author }}">
-        </div>
-        <div class="form-row">
-            <label>Category:</label>
-            <input type="text" name="category" value="{{ request.GET.category }}">
-        </div>
-        <div class="form-row">
-            <label>Date From:</label>
-            <input type="date" name="date_from" value="{{ request.GET.date_from }}">
-        </div>
-        <div class="form-row">
-            <label>Date To:</label>
-            <input type="date" name="date_to" value="{{ request.GET.date_to }}">
-        </div>
-        <button type="submit">Search</button>
-    </form>
-
-    <div class="facets">
-        <div class="facet">
-            <h4>Categories</h4>
-            <ul>
-                {% for category in facets.categories %}
-                    <li>
-                        <a href="?{{ request.GET.urlencode }}&category={{ category.key }}">
-                            {{ category.key }} ({{ category.count }})
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="facet">
-            <h4>Authors</h4>
-            <ul>
-                {% for author in facets.authors %}
-                    <li>
-                        <a href="?{{ request.GET.urlencode }}&author={{ author.key }}">
-                            {{ author.key }} ({{ author.count }})
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
-
-    <div class="results">
-        {% if total_hits > 0 %}
-            <p>Found {{ total_hits }} result{{ total_hits|pluralize }}</p>
-
-            {% for result in results %}
-                <div class="result-item">
-                    <h3>{{ result.title }}</h3>
-                    <p>{{ result.content }}</p>
-                    <div class="meta">
-                        By {{ result.author }} in {{ result.category }} |
-                        {{ result.created_at|date:"M d, Y" }}
+        <div class="results">
+            {% if total_hits > 0 %}
+                <p>Found {{ total_hits }} result{{ total_hits|pluralize }}</p>
+                {% for result in results %}
+                    <div class="result-item">
+                        <h3>{{ result.name }}</h3>
+                        <p>{{ result.description }}</p>
+                        <p>Price: ${{ result.price }}</p>
                     </div>
-                </div>
-            {% empty %}
-                <p>No results found.</p>
-            {% endfor %}
-        {% endif %}
-    </div>
-</body>
+                {% empty %}
+                    <p>No results found.</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </body>
 </html>
