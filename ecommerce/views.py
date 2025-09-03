@@ -59,6 +59,8 @@ def search_products(request):
     return render(request, "ecommerce/search.html", context)
 
 
+# http://localhost:8000/products/autocomplete/?q=descript
+# http://localhost:8000/products/autocomplete/?q=product
 def autocomplete(request):
     """Autocomplete suggestions"""
     query = request.GET.get("q", "")
@@ -66,6 +68,96 @@ def autocomplete(request):
     if len(query) < 2:
         return JsonResponse({"suggestions": []})
 
+    # Use completion suggestor
+    search = ProductDocument.search()
 
+    # Use suggest API
+    search = search.suggest(
+        "product_suggest", query, completion={"field": "suggest", "size": 5}
+    )
+
+    response = search.execute()
+
+    suggestions = []
+    if response.suggest and "product_suggest" in response.suggest:
+        for option in response.suggest.product_suggest[0].options:
+            suggestions.append(option.text)
+
+    return JsonResponse({"suggestions": suggestions})
+
+
+# http://localhost:8000/products/advanced-search/?q=product&min_price=20&max_price=40
 def advanced_search(request):
-    pass
+    """Advanced search with filters"""
+    query = request.GET.get("q", "")
+    min_price = request.GET.get("min_price")
+    max_price = request.GET.get("max_price")
+
+    search = ProductDocument.search()
+
+    queries = []
+
+    # Text search:
+    if query:
+        queries.append(
+            Q(
+                "multi_match",
+                query=query,
+                fields=[
+                    "name^3",
+                    "description",
+                ],
+                fuzziness="AUTO",
+            )
+        )
+
+    # Price range filter:
+    if min_price or max_price:
+        price_range = {}
+        if min_price:
+            price_range["gte"] = float(min_price)
+        if max_price:
+            price_range["lte"] = float(max_price)
+        queries.append(Q("range", price=price_range))
+
+    # Combine queries
+    if queries:
+        combined_query = Q("bool", must=queries)
+        search = search.query(combined_query)
+
+    # Add aggregation for faceted search:
+    search.aggs.bucket(
+        "price_ranges",
+        "range",
+        field="price",
+        ranges=[
+            {"to": 50},
+            {"from": 50, "to": 100},
+            {"from": 100, "to": 200},
+            {"from": 200},
+        ],
+    )
+
+    response = search.execute()
+
+    results = []
+    for hit in response:
+        result = {
+            "name": hit.name,
+            "description": hit.description,
+            "price": hit.price,
+            "score": hit.meta.score,
+        }
+        results.append(result)
+
+    # Extract aggregation results
+    facets = {"price_ranges": response.aggregations.price_ranges.buckets}
+
+    context = {
+        "query": query,
+        "results": results,
+        "facets": facets,
+        "total_hits": response.hits.total.value,
+    }
+
+    return render(request, "ecommerce/advanced_search.html", context)
